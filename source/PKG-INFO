@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: miniworlds_physics
+Version: 2.0.0.1
+Summary: Physics engine for miniworlds
+Home-page: https://github.com/asbl/miniworlds
+Download-URL: https://github.com/asbl/miniworlds
+Author: Andreas Siebel
+Author-email: andreas.siebel@it-teaching.de
+License: OSI Approved :: MIT License
+Keywords: games,education,mini-worlds,pygame
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Education
+Classifier: Topic :: Education
+Description-Content-Type: text/markdown
+Requires-Dist: miniworlds
+Requires-Dist: pymunk
+
+Physics World
+======================
+
+physics engine for miniworlds based on pymunk
