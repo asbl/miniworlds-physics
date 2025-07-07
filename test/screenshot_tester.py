@@ -15,11 +15,11 @@ class ScreenshotTester:
         self.board.test_title = self.unittest.__class__.__name__
         self.board.tester = self
 
-        @board.register
+        @world.register
         def on_setup(self):
             self.init_test()
 
-        @board.register
+        @world.register
         def act(self):
             self.test()
             if hasattr(self, "act_test"):
@@ -27,11 +27,11 @@ class ScreenshotTester:
 
         self.unittest.board = board
 
-        @board.register
+        @world.register
         def init_test(self):
             board.test_frame = 0
 
-        @board.register
+        @world.register
         def test(self):
             self.tester.test_frame = self.tester.test_frame + 1
             self.tester.screenshot_test(
@@ -42,12 +42,12 @@ class ScreenshotTester:
                 self.tester,
             )
             
-        @board.register
+        @world.register
         def attach_board(self, board2):
             board2.tester = self.tester
             board2.test_title = self.test_title
             
-            @board2.register
+            @world2.register
             def test(self):
                 self.tester.test_frame = self.tester.test_frame + 1
                 self.tester.screenshot_test(

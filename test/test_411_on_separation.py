@@ -1,5 +1,5 @@
-from miniworldmaker import App, Circle
-from miniworldmaker_physics import PhysicsBoard
+from miniworlds import App, Circle
+from miniworlds_physics import PhysicsBoard
 from .screenshot_tester import ScreenshotTester
 import unittest
 
@@ -7,9 +7,9 @@ class Test411(unittest.TestCase):
 
     def setUp(self):
         def test_code():
-            board = PhysicsBoard((800, 600))
+            world = PhysicsBoard((800, 600))
             # Here comes your code
-            @board.register
+            @world.register
             def setup_environment(self, test):
                 board.gravity = (0, 0)
 
@@ -33,7 +33,7 @@ class Test411(unittest.TestCase):
                 def on_separation_from_circle(self, other, info):
                     self.color = (100,100,255)
                     other.border_color = (255,255,255)
-            return board
+            return world
         App.reset(unittest=True, file=__file__)
         board = test_code()
         """ Setup screenshot tester"""
@@ -50,7 +50,7 @@ class Test411(unittest.TestCase):
 
     def test_main(self):
         with self.assertRaises(SystemExit):
-            self.board.run()
+            self.world.run()
 
 
 if __name__ == "__main__":

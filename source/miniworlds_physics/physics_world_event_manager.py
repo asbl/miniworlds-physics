@@ -42,3 +42,11 @@ class PhysicsWorldEventManager(event_manager.EventManager):
                 self.world, instance
             )
             connector.register_separate_method(method)
+
+    def act_all(self):
+        """Handles acting of actors - Calls the physics-simulation in each frame.
+
+        :meta private:
+        """
+        super().act_all()
+        self.world.simulate_all_physics_actors()

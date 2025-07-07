@@ -83,14 +83,6 @@ class PhysicsWorld(World):
             connector = world_connector.PhysicsWorldConnector(self, actor)
             connector.remove_actor_from_physics()
     
-    def _act_all(self):
-        """Handles acting of actors - Calls the physics-simulation in each frame.
-
-        :meta private:
-        """
-        super()._act_all()
-        self.simulate_all_physics_actors()
-
     def simulate_all_physics_actors(self):
         """Iterates over all actors and process physics-simulation
 

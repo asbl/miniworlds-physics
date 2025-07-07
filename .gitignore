@@ -65,7 +65,7 @@ source/docs/__pycache__/*
 source/docs/.vscode/
 source/docs/.vscode/*
 source/docs/deploy.sh
-source/miniworldmaker.egg-info
+source/miniworlds.egg-info
 source/dist/
 source/dist/*
 source/build
@@ -78,13 +78,13 @@ source/docs/scripts/*
 source/scripts
 source/docs/scripts/
 source/docs/deepl_key.py
-source/miniworldmaker.egg-info
+source/miniworlds.egg-info
 
 # custom
-source/miniworldmaker/__pycache__/
-source/miniworldmaker/__pycache__/*
-source/miniworldmaker/.vscode/
-source/miniworldmaker/.vscode/*
+source/miniworlds/__pycache__/
+source/miniworlds/__pycache__/*
+source/miniworlds/.vscode/
+source/miniworlds/.vscode/*
 source/dist
 source/dist/*
 env

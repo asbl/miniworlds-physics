@@ -1,5 +1,5 @@
-from miniworldmaker import App, Line
-from miniworldmaker_physics import PhysicsBoard
+from miniworlds import App, Line
+from miniworlds_physics import PhysicsBoard
 from .screenshot_tester import ScreenshotTester
 import unittest
 import os
@@ -13,7 +13,7 @@ class Test718(unittest.TestCase):
             board = PhysicsBoard(400, 400)
 
             # Here comes your code
-            @board.register
+            @world.register
             def setup_environment(self, test):
                 for i in range(9):
                     l = Line((i * 40, 20 + i * 10), ((i + 1) * 40, 20 + i * 10))
@@ -39,8 +39,8 @@ class Test718(unittest.TestCase):
                 def act(self):
                     l.direction += 1
 
-            board.debug = True
-            return board
+            world.debug = True
+            return world
 
         App.reset(unittest=True, file=__file__)
         board = test_code()
@@ -56,7 +56,7 @@ class Test718(unittest.TestCase):
 
     def test_main(self):
         with self.assertRaises(SystemExit):
-            self.board.run()
+            self.world.run()
 
 
 if __name__ == "__main__":

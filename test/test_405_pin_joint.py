@@ -1,5 +1,5 @@
-from miniworldmaker import App, Circle, Token, Line
-from miniworldmaker_physics import PhysicsBoard
+from miniworlds import App, Circle, Token, Line
+from miniworlds_physics import PhysicsBoard
 from .screenshot_tester import ScreenshotTester
 import unittest
 import os
@@ -64,7 +64,7 @@ class Test405(unittest.TestCase):
 
     def test_main(self):
         with self.assertRaises(SystemExit):
-            self.board.run()
+            self.world.run()
 
 
 if __name__ == "__main__":
