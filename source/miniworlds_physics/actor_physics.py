@@ -1,7 +1,7 @@
 import math
 import sys
 from typing import Optional, Union
-
+import pygame
 import pymunk as pymunk_engine
 import pymunk.pygame_util
 from miniworlds.actors import actor as actor
@@ -154,6 +154,7 @@ class ActorPhysics:
             self._setup_physics_model()  # After on_setup
 
     def _get_pymunk_shape(self):
+        actor_rect =  self._get_rect()
         if self.shape_type.lower() == "rect":
             shape = pymunk.Poly.create_box(
                 self._body,
@@ -168,10 +169,10 @@ class ActorPhysics:
             )
         elif isinstance(self.actor, shapes.Line):
             start = pymunk.pygame_util.from_pygame(
-                (0, -self.actor._length / 2), self.actor.world.image
+                (0, -self.actor._length / 2), actor_rect
             )
             end = pymunk.pygame_util.from_pygame(
-                (0, self.actor._length / 2), self.actor.world.image
+                (0, self.actor._length / 2), actor_rect
             )
             shape = pymunk.Segment(self._body, start, end, self.actor.thickness)
         else:
@@ -219,10 +220,14 @@ class ActorPhysics:
             self.dirty = 1
             self.has_physics = True
 
+    def _get_rect(self):
+        rect =  self.actor.world.backgrounds_manager.image if hasattr(self.actor.world, "backgrounds_manager") else pygame.Rect(0,0,1,1)
+
     def _set_pymunk_position(self):
+        actor_rect =  self._get_rect()
         pymunk_position = self.actor.center[0], self.actor.center[1]
         self._body.position = pymunk.pygame_util.from_pygame(
-            pymunk_position, self.actor.world.image
+            pymunk_position, actor_rect
         )
 
     def _set_pymunk_direction(self):
@@ -231,9 +236,10 @@ class ActorPhysics:
         )
 
     def _set_mwm_actor_position(self):
+        actor_rect =  self._get_rect()
         if self._body:
             self.actor.center = pymunk.pygame_util.from_pygame(
-                self._body.position, self.actor.world.image
+                self._body.position, actor_rect
             )
             self.dirty = 0
 
@@ -468,7 +474,7 @@ class ActorPhysics:
             self.velocity_x = self._body.velocity[0]
             self.velocity_y = self._body.velocity[1]
             if self.world.debug:
-                options = pymunk.pygame_util.DrawOptions(self.actor.world.image)
+                options = pymunk.pygame_util.DrawOptions(self.actor.world.backgrounds_manager.image)
                 options.collision_point_color = (255, 20, 30, 40)
                 self.world.space.debug_draw(options)
 

@@ -8,12 +8,12 @@ class ScreenshotTester:
         self.quit_frame = quit_frame
         self.unittest = unittest
         self.test_frame = 0
-        self.board = None  # Set in setup
+        self.world = None  # Set in setup
 
     def setup(self, board):
-        self.board = board
-        self.board.test_title = self.unittest.__class__.__name__
-        self.board.tester = self
+        self.world = World
+        self.world.test_title = self.unittest.__class__.__name__
+        self.world.tester = self
 
         @world.register
         def on_setup(self):
@@ -25,11 +25,11 @@ class ScreenshotTester:
             if hasattr(self, "act_test"):
                 self.act_test()
 
-        self.unittest.board = board
+        self.unittest.world = World
 
         @world.register
         def init_test(self):
-            board.test_frame = 0
+            world.test_frame = 0
 
         @world.register
         def test(self):
@@ -76,9 +76,9 @@ class ScreenshotTester:
         file_output = path + f"outputfiles/{test_title}_tmp_outputfile{frame}.png"
         print("screenshot test at frame", frame, file_output)
         if not os.path.isfile(file_test):
-            self.board.screenshot(file_test)
+            self.world.screenshot(file_test)
             print("created new testimage")
-        self.board.screenshot(file_output)
+        self.world.screenshot(file_output)
         return file_test, file_output
 
     def check_quit(
@@ -87,7 +87,7 @@ class ScreenshotTester:
     ):
         print("FRAME, frame, self.quit_frame", frame, self.quit_frame)
         if frame == self.quit_frame:
-            self.board.quit()
+            self.world.quit()
 
     def screenshot_test(self, frame, quit_frame, test_frames, test_title, test):
         files = self.screenshot(frame, test_frames, test_title)

@@ -10,9 +10,9 @@ class Test405(unittest.TestCase):
 
     def setUp(self):
         def test_code():
-            board = PhysicsBoard((400, 200))
+            world = PhysicsBoard((400, 200))
             # Here comes your code
-            @board.register
+            @@world.register
             def setup_environment(self, test):
                 anchors = []
                 circles = []
@@ -47,16 +47,16 @@ class Test405(unittest.TestCase):
                     c.physics.simulation = "simulated"
                     anchor.physics.join(c)
                     add_line(anchor, c)
-            return board
+            return world
         App.reset(unittest=True, file=__file__)
-        board = test_code()
+        world = test_code()
         """ Setup screenshot tester"""
         TEST_FRAMES = [1,10,20,30,40,60,80,100,120]
         QUIT_FRAME = 121
         tester = ScreenshotTester(TEST_FRAMES, QUIT_FRAME, self)
         tester.setup(board)
         if hasattr(board, "setup_environment"):
-            board.setup_environment(self)
+            world.setup_environment(self)
 
 
 

@@ -10,7 +10,7 @@ class Test718(unittest.TestCase):
 
     def setUp(self):
         def test_code():
-            board = PhysicsBoard(400, 400)
+            world = PhysicsBoard(400, 400)
 
             # Here comes your code
             @world.register
@@ -43,14 +43,14 @@ class Test718(unittest.TestCase):
             return world
 
         App.reset(unittest=True, file=__file__)
-        board = test_code()
+        world = test_code()
         """ Setup screenshot tester"""
         TEST_FRAMES = [1, 3, 6, 9, 12, 20, 40, 60]
         QUIT_FRAME = 60
         tester = ScreenshotTester(TEST_FRAMES, QUIT_FRAME, self)
         tester.setup(board)
         if hasattr(board, "setup_environment"):
-            board.setup_environment(self)
+            world.setup_environment(self)
 
         return board
 

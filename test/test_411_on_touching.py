@@ -14,7 +14,7 @@ class Test000(unittest.TestCase):
             # Here comes your code
             @world.register
             def setup_environment(self, test):
-                board.gravity = (0, 0)
+                world.gravity = (0, 0)
                 a = Circle()
                 a.position = (75, 200)
                 a.color = (255,0,0)
@@ -38,14 +38,14 @@ class Test000(unittest.TestCase):
                     
             return world
         App.reset(unittest=True, file=__file__)
-        board = test_code()
+        world = test_code()
         """ Setup screenshot tester"""
         TEST_FRAMES = [1,3,6,9,12,20,40,60]
         QUIT_FRAME = 60
         tester = ScreenshotTester(TEST_FRAMES, QUIT_FRAME, self)
         tester.setup(board)
         if hasattr(board, "setup_environment"):
-            board.setup_environment(self)
+            world.setup_environment(self)
 
 
 
