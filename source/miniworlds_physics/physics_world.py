@@ -21,7 +21,6 @@ class PhysicsWorld(World):
         columns: int = 40,
         rows: int = 40,
     ):
-
         self.gravity_x: float = 0
         self.gravity_y: float = 900
         self.debug: bool = False

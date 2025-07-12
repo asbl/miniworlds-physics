@@ -72,7 +72,6 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
             pass # actor not in physics actors
         
     def remove_actor_from_physics(self):
-        print("remove from physics", self.actor)
         self.actor.physics._remove_from_space()
         if self in self.world.physics_actors:
             self.world.physics_actors.remove(self.actor)
@@ -137,26 +136,31 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
             return True
 
     def _pymunk_register_collision_manager(self, actor, other_class, event, method):
-        """Adds pymunk collision handler, which is evaluated by pymunk engine.
-
-        The event (begin, end) and the method (on_touching...) are added as data to the handler
-
-        Args:
-            actor: The actor
-            other_class: The class which should be detected by collision handler
-            event: The pymunk-event  (begin or separate)
-            method: The method, e.g. on_touching_actor or on_separation_from_actor. Last part is a class name
-
-        :meta private:
-        """
-
-        space = self.world.space
         actor_id = hash(actor.__class__.__name__) % ((sys.maxsize + 1) * 2)
         other_id = hash(other_class.__name__) % ((sys.maxsize + 1) * 2)
-        handler = space.add_collision_handler(actor_id, other_id)
-        handler.data["method"] = getattr(actor, method.__name__)
-        handler.data["type"] = event
+
+        def handler_func(arbiter, space, data):
+            
+            miniworld_positions = []
+            for contact in arbiter.contact_point_set.points:
+                pymunk_pos = contact.point_a
+                miniworlds_pos = actor.position_manager.physics_to_miniworlds_coordinates(pymunk_pos)
+            miniworld_positions.append(miniworlds_pos)
+
+            shape_a, shape_b = arbiter.shapes
+            body_a, body_b = shape_a.body, shape_b.body
+            # check which of the shapes belong to actor, which to other
+            
+
+            if getattr(shape_a, "actor", None) == actor:
+                other_obj = getattr(shape_b, "actor", None)
+            else:
+                other_obj = getattr(shape_a, "actor", None)
+            print("other not found")
+                
+            return getattr(actor, method.__name__)(other_obj, miniworld_positions)
+
         if event == "begin":
-            handler.begin = self.world.pymunk_touching_collision_listener
-        if event == "separate":
-            handler.separate = self.world.pymunk_separation_collision_listener
+            self.world.space.on_collision(actor_id, other_id, begin=handler_func)
+        elif event == "separate":
+            self.world.space.on_collision(actor_id, other_id, separate=handler_func)

@@ -235,17 +235,10 @@ class ActorPhysics:
             self.actor.position_manager.get_pymunk_direction_from_miniworlds()
         )
 
-    def _set_mwm_actor_position(self):
-        actor_rect =  self._get_rect()
-        if self._body:
-            self.actor.center = pymunk.pygame_util.from_pygame(
-                self._body.position, actor_rect
-            )
-            self.dirty = 0
-
     def _set_mwm_actor_direction(self):
-        self.actor.position_manager.set_mwm_direction_from_pymunk()
+        self.actor.position_manager.set_miniworlds_direction_from_pymunk()
         self.dirty = 0
+
 
     def reload(self):
         """Removes actor from space and reloads physics_model"""
@@ -468,7 +461,7 @@ class ActorPhysics:
         Reloads physics model from pygame data
         """
         if self.simulation and not math.isnan(self._body.position[0]):
-            self._set_mwm_actor_position()
+            self.actor._position_manager.set_miniworlds_actor_position()
             self._set_mwm_actor_direction()
         if self._body and not self._body.body_type == pymunk_engine.Body.STATIC:
             self.velocity_x = self._body.velocity[0]

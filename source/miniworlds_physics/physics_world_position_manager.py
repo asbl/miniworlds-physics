@@ -1,6 +1,7 @@
 from math import radians, degrees
 from typing import Tuple
 
+import pymunk
 import miniworlds.worlds.manager.position_manager as position_manager
 from miniworlds.base.exceptions import (
     PhysicsSimulationTypeError,
@@ -56,7 +57,7 @@ class PhysicsWorldPositionManager(position_manager.Positionmanager):
         direction = radians(mwm_direction)
         return direction
 
-    def set_mwm_direction_from_pymunk(self):
+    def set_miniworlds_direction_from_pymunk(self):
         pymunk_dir_in_degrees = degrees(self.actor.physics.body.angle)
         mwm_direction = (pymunk_dir_in_degrees + 360) % 360
         super().set_direction(mwm_direction)
@@ -88,3 +89,14 @@ class PhysicsWorldPositionManager(position_manager.Positionmanager):
 
     def self_remove(self):
         self.actor.physics._remove_from_space()
+
+    def physics_to_miniworlds_coordinates(self, position):
+        world_rect =  self.actor.world.camera.get_world_rect()
+        return pymunk.pygame_util.from_pygame(
+                position, world_rect
+            )
+
+    def set_miniworlds_actor_position(self):
+        if hasattr(self.actor, "physics"):
+            self.actor.center = self.physics_to_miniworlds_coordinates(self.actor.physics._body.position)
+            self.dirty = 0
