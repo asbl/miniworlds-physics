@@ -221,7 +221,9 @@ class ActorPhysics:
             self.has_physics = True
 
     def _get_rect(self):
-        rect =  self.actor.world.backgrounds_manager.image if hasattr(self.actor.world, "backgrounds_manager") else pygame.Rect(0,0,1,1)
+        if hasattr(self.actor.world, "backgrounds"):
+            return self.actor.world.backgrounds.image
+        return pygame.Surface((1, 1))
 
     def _set_pymunk_position(self):
         actor_rect =  self._get_rect()
@@ -467,7 +469,7 @@ class ActorPhysics:
             self.velocity_x = self._body.velocity[0]
             self.velocity_y = self._body.velocity[1]
             if self.world.debug:
-                options = pymunk.pygame_util.DrawOptions(self.actor.world.backgrounds_manager.image)
+                options = pymunk.pygame_util.DrawOptions(self.actor.world.backgrounds.image)
                 options.collision_point_color = (255, 20, 30, 40)
                 self.world.space.debug_draw(options)
 

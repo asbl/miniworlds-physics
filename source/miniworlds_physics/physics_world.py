@@ -30,7 +30,7 @@ class PhysicsWorld(World):
         self.space.iterations = 35
         self.space.damping = 0.9
         self.space.collision_persistence = 10
-        self._damping = 0
+        self._damping = 0.9
         self.physics_actors = list()
         self.touching_methods = set()  # filled in actor_manager
         self.separate_methods = set()  # filled in actor_manager
@@ -141,10 +141,10 @@ class PhysicsWorld(World):
 
         A value of 0.9 means that each body will lose 10% of its velocity per second. Defaults to 1.
         """
-        return self.gravity_x, self.gravity_y
+        return self._damping
 
     @damping.setter
-    def damping(self, value: tuple):
+    def damping(self, value: float):
         self._damping = value
         self.space.damping = self._damping
 

@@ -1,16 +1,14 @@
 from miniworlds import App, Line
-from miniworlds_physics import PhysicsBoard
-from .screenshot_tester import ScreenshotTester
+from miniworlds_physics import PhysicsWorld
+from screenshot_tester import ScreenshotTester
 import unittest
-import os
-import random
 
 
 class Test718(unittest.TestCase):
 
     def setUp(self):
         def test_code():
-            world = PhysicsBoard(400, 400)
+            world = PhysicsWorld(400, 400)
 
             # Here comes your code
             @world.register
@@ -44,15 +42,12 @@ class Test718(unittest.TestCase):
 
         App.reset(unittest=True, file=__file__)
         world = test_code()
-        """ Setup screenshot tester"""
         TEST_FRAMES = [1, 3, 6, 9, 12, 20, 40, 60]
         QUIT_FRAME = 60
         tester = ScreenshotTester(TEST_FRAMES, QUIT_FRAME, self)
-        tester.setup(board)
-        if hasattr(board, "setup_environment"):
+        tester.setup(world)
+        if hasattr(world, "setup_environment"):
             world.setup_environment(self)
-
-        return board
 
     def test_main(self):
         with self.assertRaises(SystemExit):

@@ -21,26 +21,35 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
         self.actor.register(self.set_velocity_y, force=True)
         self.actor.register(self.set_velocity, force=True)
 
+    @staticmethod
+    def _get_registered_actor(instance):
+        return instance.actor if hasattr(instance, "actor") else instance
 
     def impulse(self, direction: float, power: int):
         """this method will be registered to an Actor-Instance
         """
-        self.actor.position_manager.impulse(direction, power)
+        actor = PhysicsWorldConnector._get_registered_actor(self)
+        actor.position_manager.impulse(direction, power)
     
     def force(self, direction: float, power: int):
-        self.actor.position_manager.force(direction, power)
+        actor = PhysicsWorldConnector._get_registered_actor(self)
+        actor.position_manager.force(direction, power)
 
     def set_simulation(self, simulation_type: str):
-        self.actor.position_manager.set_simulation(simulation_type)
+        actor = PhysicsWorldConnector._get_registered_actor(self)
+        actor.position_manager.set_simulation(simulation_type)
         
     def set_velocity_x(self, value):
-        self.actor.position_manager.set_velocity_x(value)
+        actor = PhysicsWorldConnector._get_registered_actor(self)
+        actor.position_manager.set_velocity_x(value)
 
     def set_velocity_y(self, value):
-        self.actor.position_manager.set_velocity_y(value)
+        actor = PhysicsWorldConnector._get_registered_actor(self)
+        actor.position_manager.set_velocity_y(value)
         
     def set_velocity(self, value):
-        self.actor.position_manager.set_velocity(value)
+        actor = PhysicsWorldConnector._get_registered_actor(self)
+        actor.position_manager.set_velocity(value)
     @staticmethod
     def get_position_manager_class():
         return physics_position_manager.PhysicsWorldPositionManager
@@ -62,23 +71,15 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
             self.actor.on_begin_simulation()
 
     def remove_actor_from_world(self, kill: bool = False):
-        super().remove_actor_from_world(kill = False)
         self.actor.physics._remove_from_space()
-        if self in self.world.physics_actors:
-            self.world.physics_actors.remove(self)
-        try:
+        if self.actor in self.world.physics_actors:
             self.world.physics_actors.remove(self.actor)
-        except ValueError:
-            pass # actor not in physics actors
+        return super().remove_actor_from_world(kill=kill)
         
     def remove_actor_from_physics(self):
         self.actor.physics._remove_from_space()
-        if self in self.world.physics_actors:
+        if self.actor in self.world.physics_actors:
             self.world.physics_actors.remove(self.actor)
-        try:
-            self.world.physics_actors.remove(self.actor)
-        except ValueError:
-            pass # actor not in physics actors
             
     def register_all_physics_collision_managers_for_actor(self):
         """Registers on__touching and on_separation-Methods to actor.
@@ -140,24 +141,26 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
         other_id = hash(other_class.__name__) % ((sys.maxsize + 1) * 2)
 
         def handler_func(arbiter, space, data):
-            
             miniworld_positions = []
-            for contact in arbiter.contact_point_set.points:
+            try:
+                contact_points = arbiter.contact_point_set.points
+            except AssertionError:
+                contact_points = []
+
+            for contact in contact_points:
                 pymunk_pos = contact.point_a
-                miniworlds_pos = actor.position_manager.physics_to_miniworlds_coordinates(pymunk_pos)
-            miniworld_positions.append(miniworlds_pos)
+                miniworlds_pos = actor.position_manager.physics_to_miniworlds_coordinates(
+                    pymunk_pos
+                )
+                miniworld_positions.append(miniworlds_pos)
 
             shape_a, shape_b = arbiter.shapes
-            body_a, body_b = shape_a.body, shape_b.body
             # check which of the shapes belong to actor, which to other
-            
-
             if getattr(shape_a, "actor", None) == actor:
                 other_obj = getattr(shape_b, "actor", None)
             else:
                 other_obj = getattr(shape_a, "actor", None)
-            print("other not found")
-                
+
             return getattr(actor, method.__name__)(other_obj, miniworld_positions)
 
         if event == "begin":

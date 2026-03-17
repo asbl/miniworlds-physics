@@ -10,9 +10,12 @@ from miniworlds_physics import (
 class PhysicsWorldEventManager(event_manager.EventManager):
     """Adds on_touching and on separation events"""
 
-    @classmethod
-    def setup_event_list(cls):
-        super().setup_event_list()
+    def __init__(self, world):
+        super().__init__(world)
+        self._sync_physics_event_definition()
+
+    def _sync_physics_event_definition(self):
+        self.definition.update()
         touching_actor_methods = []
         separation_actor_methods = []
         for actor_cls in actor_class_inspection.ActorClassInspection(
@@ -25,11 +28,16 @@ class PhysicsWorldEventManager(event_manager.EventManager):
             separation_actor_methods.append(
                 "on_separation_from_" + actor_cls.__name__.lower()
             )
-        cls.actor_class_events["on_touching"] = touching_actor_methods
-        cls.actor_class_events["on_separation"] = separation_actor_methods
-        cls.fill_event_sets()
+        self.definition.actor_class_events["on_touching"] = touching_actor_methods
+        self.definition.actor_class_events["on_separation"] = separation_actor_methods
+        self.definition.fill_event_sets()
+
+    def can_register_to_actor(self, method):
+        self._sync_physics_event_definition()
+        return method.__name__ in self.definition.actor_class_events_set
 
     def register_event(self, member, instance):
+        self._sync_physics_event_definition()
         super().register_event(member, instance)
         method = inspection.Inspection(instance).get_instance_method(member)
         if member.startswith("on_touching_"):
