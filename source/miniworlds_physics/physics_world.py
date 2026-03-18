@@ -78,6 +78,14 @@ class PhysicsWorld(World):
         ]
 
     def on_new_actor(self, actor):
+        """Synchronizes newly added actors with the physics simulation.
+
+        Actors that have physics disabled are removed from pymunk so they stay
+        as non-simulated world objects.
+
+        Args:
+            actor: The newly added actor.
+        """
         if not actor.physics.simulation:
             connector = world_connector.PhysicsWorldConnector(self, actor)
             connector.remove_actor_from_physics()
@@ -114,7 +122,7 @@ class PhysicsWorld(World):
     def gravity(self) -> tuple:
         """Defines gravity in physics world.
 
-        Gravity is a 2-tuple with gravy in x-direction and y-direction.
+        Gravity is a 2-tuple with gravity in x-direction and y-direction.
 
         Default gravity: x=0, y=500
 
