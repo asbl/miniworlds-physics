@@ -12,7 +12,7 @@ jobs:
       contents: read
       id-token: write
     environment:
-      name: pypi
+      name: release
 
     steps:
       - name: Check out the code
