@@ -11,7 +11,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="miniworlds_physics",
-    version="3.5.0.5",
+    version="3.6.0.0",
     description="Physics engine for miniworlds",
     long_description=long_description,
     long_description_content_type="text/markdown",
