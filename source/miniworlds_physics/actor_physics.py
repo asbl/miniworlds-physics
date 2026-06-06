@@ -1,5 +1,4 @@
 import math
-import sys
 from typing import Optional, Union
 import pygame
 import pymunk as pymunk_engine
@@ -140,9 +139,10 @@ class ActorPhysics:
                 Your browser does not support the video tag.
                 </video>
         """
-        for join in self.joints:
-            if other.physics._body == join.b:
+        for join in list(self.joints):
+            if other.physics._body in (join.a, join.b):
                 self.world.space.remove(join)
+                self.joints.remove(join)
 
     def _start(self):
         """Starts the physics-simulation
@@ -209,8 +209,8 @@ class ActorPhysics:
                 self._shape.friction = self.friction
                 self._shape.elasticity = self.elasticity
                 self._shape.actor = self.actor
-                self._shape.collision_type = hash(self.actor.__class__.__name__) % (
-                    (sys.maxsize + 1) * 2
+                self._shape.collision_type = self.world.get_physics_collision_type(
+                    self.actor.__class__
                 )
                 self.world.space.add(self._body, self._shape)
             if self.moment is not None:
@@ -255,11 +255,15 @@ class ActorPhysics:
 
     def _remove_from_space(self):
         if self._body:
+            for constraint in list(self.world.space.constraints):
+                if self._body in (constraint.a, constraint.b):
+                    self.world.space.remove(constraint)
             for shape in list(self._body.shapes):
                 if shape in self.world.space.shapes:
                     self.world.space.remove(shape)
             if self._body in self.world.space.bodies:
                 self.world.space.remove(self._body)
+        self.joints.clear()
 
     def remove(self):
         """Removes an object from physics-space"""
@@ -281,6 +285,10 @@ class ActorPhysics:
     @simulation.setter
     def simulation(self, value: Union[str, None]):
         # Sets the simulation type
+        if value is not None and value not in ["static", "manual", "simulated"]:
+            raise ValueError(
+                "simulation must be one of 'static', 'manual', 'simulated' or None"
+            )
         self._simulation = value
         if not value:
             self._is_rotatable = False

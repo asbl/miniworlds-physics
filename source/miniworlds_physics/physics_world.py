@@ -34,6 +34,9 @@ class PhysicsWorld(World):
         self.physics_actors = list()
         self.touching_methods = set()  # filled in actor_manager
         self.separate_methods = set()  # filled in actor_manager
+        self._registered_physics_handlers = set()
+        self._physics_collision_types = {}
+        self._next_physics_collision_type = 1
         super().__init__(columns, rows)
 
 
@@ -50,6 +53,8 @@ class PhysicsWorld(World):
 
     @accuracy.setter
     def accuracy(self, value: int):
+        if value < 1:
+            raise ValueError("PhysicsWorld.accuracy must be at least 1")
         self._accuracy = value
 
     @staticmethod
@@ -76,6 +81,13 @@ class PhysicsWorld(World):
             for method_name in methods
             if hasattr(actor, method_name) and callable(getattr(actor, method_name))
         ]
+
+    def get_physics_collision_type(self, actor_class):
+        """Return a stable pymunk collision type for an actor class."""
+        if actor_class not in self._physics_collision_types:
+            self._physics_collision_types[actor_class] = self._next_physics_collision_type
+            self._next_physics_collision_type += 1
+        return self._physics_collision_types[actor_class]
 
     def on_new_actor(self, actor):
         """Synchronizes newly added actors with the physics simulation.

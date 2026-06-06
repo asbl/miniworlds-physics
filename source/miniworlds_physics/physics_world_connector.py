@@ -5,7 +5,6 @@ import miniworlds_physics.physics_world as world_mod
 import miniworlds_physics.actor_physics as actor_physics
 import miniworlds_physics.physics_world_position_manager as physics_position_manager
 import miniworlds.actors.actor as actor_mod
-import sys
 
 
 class PhysicsWorldConnector(world_connector.WorldConnector):
@@ -72,12 +71,14 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
 
     def remove_actor_from_world(self, kill: bool = False):
         self.actor.physics._remove_from_space()
+        self.unregister_physics_collision_methods_for_actor()
         if self.actor in self.world.physics_actors:
             self.world.physics_actors.remove(self.actor)
         return super().remove_actor_from_world(kill=kill)
         
     def remove_actor_from_physics(self):
         self.actor.physics._remove_from_space()
+        self.unregister_physics_collision_methods_for_actor()
         if self.actor in self.world.physics_actors:
             self.world.physics_actors.remove(self.actor)
             
@@ -93,6 +94,18 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
                 self.register_touching_method(method)
             elif method.__name__.startswith("on_separation_from_"):
                 self.register_separate_method(method)
+
+    def unregister_physics_collision_methods_for_actor(self):
+        self.world.touching_methods = {
+            method
+            for method in self.world.touching_methods
+            if getattr(method, "__self__", None) != self.actor
+        }
+        self.world.separate_methods = {
+            method
+            for method in self.world.separate_methods
+            if getattr(method, "__self__", None) != self.actor
+        }
 
     def register_touching_method(self, method):
         """
@@ -133,35 +146,73 @@ class PhysicsWorldConnector(world_connector.WorldConnector):
             for other_subcls in set(subclasses_of_other_actor).union({other_cls}):
                 # If you register a Collision with a Actor, collisions with subclasses of the actor
                 # are also registered
-                self._pymunk_register_collision_manager(method.__self__, other_subcls, event, method)
+                self._pymunk_register_collision_manager(
+                    method.__self__.__class__, other_subcls, event
+                )
             return True
 
-    def _pymunk_register_collision_manager(self, actor, other_class, event, method):
-        actor_id = hash(actor.__class__.__name__) % ((sys.maxsize + 1) * 2)
-        other_id = hash(other_class.__name__) % ((sys.maxsize + 1) * 2)
+    def _get_collision_points(self, arbiter, actor):
+        miniworld_positions = []
+        try:
+            contact_points = arbiter.contact_point_set.points
+        except AssertionError:
+            contact_points = []
+
+        for contact in contact_points:
+            miniworlds_pos = actor.position_manager.physics_to_miniworlds_coordinates(
+                contact.point_a
+            )
+            miniworld_positions.append(miniworlds_pos)
+        return miniworld_positions
+
+    def _method_matches_other_actor(self, method, other):
+        if method.__name__.startswith("on_touching_"):
+            other_cls_name = method.__name__[len("on_touching_"):].lower()
+        elif method.__name__.startswith("on_separation_from_"):
+            other_cls_name = method.__name__[len("on_separation_from_"):].lower()
+        else:
+            return False
+        other_cls = actor_class_inspection.ActorClassInspection(
+            self
+        ).find_actor_class_by_classname(other_cls_name)
+        return other_cls is not None and isinstance(other, other_cls)
+
+    def _dispatch_physics_collision(self, event, arbiter):
+        shape_a, shape_b = arbiter.shapes
+        actor_a = getattr(shape_a, "actor", None)
+        actor_b = getattr(shape_b, "actor", None)
+        if actor_a is None or actor_b is None:
+            return True
+
+        methods = (
+            self.world.touching_methods
+            if event == "begin"
+            else self.world.separate_methods
+        )
+        should_process_collision = True
+        for actor, other in ((actor_a, actor_b), (actor_b, actor_a)):
+            collision_points = self._get_collision_points(arbiter, actor)
+            for method in list(methods):
+                if (
+                    getattr(method, "__self__", None) == actor
+                    and self._method_matches_other_actor(method, other)
+                ):
+                    result = getattr(actor, method.__name__)(other, collision_points)
+                    if result is False:
+                        should_process_collision = False
+        return should_process_collision
+
+    def _pymunk_register_collision_manager(self, actor_class, other_class, event):
+        handler_key = (event, actor_class, other_class)
+        if handler_key in self.world._registered_physics_handlers:
+            return
+        self.world._registered_physics_handlers.add(handler_key)
+
+        actor_id = self.world.get_physics_collision_type(actor_class)
+        other_id = self.world.get_physics_collision_type(other_class)
 
         def handler_func(arbiter, space, data):
-            miniworld_positions = []
-            try:
-                contact_points = arbiter.contact_point_set.points
-            except AssertionError:
-                contact_points = []
-
-            for contact in contact_points:
-                pymunk_pos = contact.point_a
-                miniworlds_pos = actor.position_manager.physics_to_miniworlds_coordinates(
-                    pymunk_pos
-                )
-                miniworld_positions.append(miniworlds_pos)
-
-            shape_a, shape_b = arbiter.shapes
-            # check which of the shapes belong to actor, which to other
-            if getattr(shape_a, "actor", None) == actor:
-                other_obj = getattr(shape_b, "actor", None)
-            else:
-                other_obj = getattr(shape_a, "actor", None)
-
-            return getattr(actor, method.__name__)(other_obj, miniworld_positions)
+            return self._dispatch_physics_collision(event, arbiter)
 
         if event == "begin":
             self.world.space.on_collision(actor_id, other_id, begin=handler_func)
